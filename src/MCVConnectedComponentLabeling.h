@@ -19,11 +19,15 @@ struct MCVConnectedComponentConfig {
     } filter;
 };
 
+#define MCVConnectedComponentMaxLabelsDefault 1024
 #define MCVConnectedComponentConfigDefault ((struct MCVConnectedComponentConfig){ .filter = {2, 2, 100, 100} })
 
 @interface MCVConnectedComponentLabeling : TGLShaderWrapper
 
+@property (nonatomic, readonly) GLint max_labels;
+
 + (MCVConnectedComponentLabeling *)createWithSize:(CGSize)size;
++ (MCVConnectedComponentLabeling *)createWithSize:(CGSize)size withMaxLabels:(size_t)max_labels;
 
 - (BOOL)configure:(struct MCVConnectedComponentConfig)config;
 

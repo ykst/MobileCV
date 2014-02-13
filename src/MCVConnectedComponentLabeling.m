@@ -13,13 +13,13 @@ struct label_def {
     uint32_t mark;
 };
 
-#define MAX_LABELS 1024
 @interface MCVConnectedComponentLabeling() {
     CGSize _size;
     NSMutableData *_tmp;
     struct MCVConnectedComponentConfig _config;
-    struct label_def _defs[MAX_LABELS];
+    struct label_def *_defs;
 }
+@property (nonatomic, readwrite) GLint max_labels;
 
 @property (nonatomic, readwrite) GLint attribute_position;
 @property (nonatomic, readwrite) GLint uniform_image_tex;
@@ -29,19 +29,28 @@ struct label_def {
 
 @implementation MCVConnectedComponentLabeling
 
-+(MCVConnectedComponentLabeling *)createWithSize:(CGSize)size
++ (MCVConnectedComponentLabeling *)createWithSize:(CGSize)size
 {
-    id obj = [[[self class] alloc] initWithSize:size];
+    return [MCVConnectedComponentLabeling createWithSize:size withMaxLabels:MCVConnectedComponentMaxLabelsDefault];
+}
+
++ (MCVConnectedComponentLabeling *)createWithSize:(CGSize)size withMaxLabels:(size_t)max_labels
+{
+    id obj = [[[self class] alloc] initWithSize:size withMaxLabels:max_labels];
 
     return obj;
 }
 
-- (id)initWithSize:(CGSize)size
+- (id)initWithSize:(CGSize)size withMaxLabels:(size_t)max_labels
 {
+    NSASSERT(max_labels > 0);
+
     self = [super init];
     if (self) {
         _size = size;
         _config = MCVConnectedComponentConfigDefault;
+        _max_labels = max_labels;
+        TALLOCS(_defs, _max_labels, NSASSERT(!"OOM"));
 
         // we do not make a fully labeled image but its logical blob informations. so 1 line of working buffer is suffice
         _tmp = [NSMutableData dataWithLength:(size.width * sizeof(uint16_t))];
@@ -90,8 +99,8 @@ struct label_def {
 }
 
 static inline int __filter_blobs(
-                                   struct label_def defs[MAX_LABELS],
-                                   int max_label,
+                                   struct label_def *defs,
+                                   int effective_labels,
                                    struct MCVConnectedComponentConfig config)
 {
     int copy_idx = 0;
@@ -100,7 +109,7 @@ static inline int __filter_blobs(
     int max_w = config.filter.max_w;
     int max_h = config.filter.max_h;
 
-    for (int i = 1; i <= max_label; ++i) {
+    for (int i = 1; i <= effective_labels; ++i) {
         int ww = defs[i].max_x - defs[i].min_x;
         int hh = defs[i].max_y - defs[i].min_y;
 
@@ -117,12 +126,12 @@ static inline int __filter_blobs(
 // ref: A Simple and Efficient Connected Components Labeling Algorithm
 // http://www.researchgate.net/publication/3820852_A_simple_and_efficient_connected_components_labeling_algorithm/file/60b7d51496cb6be714.pdf
 // TODO: 微妙に間違ってるけど、性能は悪くないので放置している
-static inline int __extract_blobs(
-                                   struct label_def defs[MAX_LABELS],
-                                   const uint8_t * restrict img,
-                                   uint16_t * restrict tmp,
-                                   int w,
-                                   int h)
+static inline int __extract_blobs(struct label_def *defs,
+                                  const uint8_t * restrict img,
+                                  uint16_t * restrict tmp,
+                                  int w,
+                                  int h,
+                                  size_t max_label)
 {
     // 4-neighbour connection
     //    p
@@ -147,7 +156,7 @@ static inline int __extract_blobs(
                 uint16_t lp = *p;
 
                 if (!lp && !lq) {
-                    if (label_idx >= MAX_LABELS - 1) {
+                    if (label_idx >= max_label - 1) {
                         return label_idx;
                     }
 
@@ -198,15 +207,16 @@ static inline int __extract_blobs(
 }
 
 static inline int __ccl_process(
-                                struct label_def defs[MAX_LABELS],
+                                struct label_def * restrict defs,
                                 const uint8_t * restrict img,
                                 uint16_t * restrict tmp,
                                 int w, int h,
+                                size_t max_labels,
                                 struct MCVConnectedComponentConfig config)
 {
     memset(tmp, 0x00, w * sizeof(*tmp));
 
-    int max_label = __extract_blobs(defs, img, tmp, w, h);
+    int max_label = __extract_blobs(defs, img, tmp, w, h, max_labels);
     return __filter_blobs(defs, max_label, config);
 }
 
@@ -219,6 +229,7 @@ static inline int __ccl_process(
                               [src.plane lockReadonly],
                               _tmp.mutableBytes,
                               _size.width, _size.height,
+                              _max_labels,
                               _config);
 
     [src.plane unlockReadonly];
@@ -279,6 +290,7 @@ static inline int __ccl_process(
                               [src.plane lockReadonly],
                               _tmp.mutableBytes,
                               _size.width, _size.height,
+                              _max_labels,
                               _config);
 
     NSMutableArray *result = [NSMutableArray arrayWithCapacity:max_label];
@@ -296,6 +308,10 @@ static inline int __ccl_process(
     return result;
 }
 
+- (void)dealloc
+{
+    FREE(_defs);
+}
 @end
 
 @implementation MCVConnectedComponent
