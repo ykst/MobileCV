@@ -17,6 +17,7 @@ struct label_def {
 @interface MCVConnectedComponentLabeling() {
     CGSize _size;
     NSMutableData *_tmp;
+    struct MCVConnectedComponentConfig _config;
     struct label_def _defs[MAX_LABELS];
 }
 
@@ -40,6 +41,7 @@ struct label_def {
     self = [super init];
     if (self) {
         _size = size;
+        _config = MCVConnectedComponentConfigDefault;
 
         // we do not make a fully labeled image but its logical blob informations. so 1 line of working buffer is suffice
         _tmp = [NSMutableData dataWithLength:(size.width * sizeof(uint16_t))];
@@ -80,19 +82,31 @@ struct label_def {
     _fbo = [TGLFrameBufferObject createEmptyFrameBuffer];
 }
 
+- (BOOL)configure:(struct MCVConnectedComponentConfig)config
+{
+    _config = config;
+
+    return YES;
+}
+
 static inline int __filter_blobs(
                                    struct label_def defs[MAX_LABELS],
-                                   int max_label)
+                                   int max_label,
+                                   struct MCVConnectedComponentConfig config)
 {
     int copy_idx = 0;
+    int min_w = config.filter.min_w;
+    int min_h = config.filter.min_h;
+    int max_w = config.filter.max_w;
+    int max_h = config.filter.max_h;
 
     for (int i = 1; i <= max_label; ++i) {
         int ww = defs[i].max_x - defs[i].min_x;
         int hh = defs[i].max_y - defs[i].min_y;
 
         if ((defs[i].mark == i) &&
-            (ww > 2 && hh > 2) &&
-            (ww < 100  && hh < 100)) {
+            (ww >= min_w && hh >= min_h) &&
+            (ww <= max_w  && hh <= max_h)) {
             defs[copy_idx++] = defs[i];
         }
     }
@@ -187,13 +201,13 @@ static inline int __ccl_process(
                                 struct label_def defs[MAX_LABELS],
                                 const uint8_t * restrict img,
                                 uint16_t * restrict tmp,
-                                int w,
-                                int h)
+                                int w, int h,
+                                struct MCVConnectedComponentConfig config)
 {
     memset(tmp, 0x00, w * sizeof(*tmp));
 
     int max_label = __extract_blobs(defs, img, tmp, w, h);
-    return __filter_blobs(defs, max_label);
+    return __filter_blobs(defs, max_label, config);
 }
 
 - (BOOL)debugProcess:(MCVBufferFreight *)src to:(MCVBufferFreight *)dst
@@ -201,7 +215,11 @@ static inline int __ccl_process(
     int max_label = 0;
 
     BENCHMARK("cc labeling")
-    max_label = __ccl_process(_defs, [src.plane lockReadonly], _tmp.mutableBytes, _size.width, _size.height);
+    max_label = __ccl_process(_defs,
+                              [src.plane lockReadonly],
+                              _tmp.mutableBytes,
+                              _size.width, _size.height,
+                              _config);
 
     [src.plane unlockReadonly];
 
@@ -257,7 +275,11 @@ static inline int __ccl_process(
     int max_label = 0;
 
     BENCHMARK("cc labeling")
-    max_label = __ccl_process(_defs, [src.plane lockReadonly], _tmp.mutableBytes, _size.width, _size.height);
+    max_label = __ccl_process(_defs,
+                              [src.plane lockReadonly],
+                              _tmp.mutableBytes,
+                              _size.width, _size.height,
+                              _config);
 
     NSMutableArray *result = [NSMutableArray arrayWithCapacity:max_label];
 

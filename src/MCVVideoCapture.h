@@ -15,4 +15,3 @@
 - (void) stopCapture;
 - (BOOL) isCapturing; 
 @end
-

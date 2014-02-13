@@ -14,4 +14,3 @@
 + (MCVTextureRenderer *)create;
 - (BOOL)process:(MCVBufferFreight *)src;
 @end
-
