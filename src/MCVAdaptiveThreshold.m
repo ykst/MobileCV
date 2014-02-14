@@ -15,15 +15,15 @@
 
 @implementation MCVAdaptiveThreshold
 
-+(id)createWithBias:(GLfloat)bias withWindowSize:(CGSize)window_size
++(id)createWithBias:(GLfloat)bias withScreenSize:(CGSize)screen_size withWindowSize:(CGSize)window_size
 
 {
-    id obj = [[[self class] alloc] initWithBias:bias withWindowSize:window_size];
+    id obj = [[[self class] alloc] initWithBias:bias withScreenSize:(CGSize)screen_size  withWindowSize:window_size];
 
     return obj;
 }
 
-- (id)initWithBias:(GLfloat)bias withWindowSize:(CGSize)window_size
+- (id)initWithBias:(GLfloat)bias withScreenSize:(CGSize)screen_size withWindowSize:(CGSize)window_size
 
 {
     self = [super init];
@@ -32,8 +32,8 @@
             [self _setupShader];
 
             [_program use];
-            glUniform1f(_uniform_area, window_size.width * window_size.height / (640.0 * 480.0) * bias);
-            glUniform2f(_uniform_window, window_size.width / 640.0, window_size.height / 480.0);
+            glUniform1f(_uniform_area, window_size.width * window_size.height / (screen_size.width * screen_size.height) * bias);
+            glUniform2f(_uniform_window, window_size.width / screen_size.width, window_size.height / screen_size.height);
             [[_program class] unuse];
         }];
     }
