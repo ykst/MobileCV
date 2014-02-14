@@ -175,15 +175,11 @@ static void __calc_calibrated_texture_coordinate(GLfloat array2x4[8], double rol
         [_fbo bind];
 
         glViewport(0, 0, dst.size.width, dst.size.height);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst.plane.name, 0);
 
-        glActiveTexture(GL_TEXTURE2);GLASSERT;
-        [src.plane bind];
-        glUniform1i(_uniform_luminanceTexture, 2);GLASSERT;
+        [dst.plane attachColorFB];
 
-        glActiveTexture(GL_TEXTURE3);
-        [src.subplane bind];
-        glUniform1i(_uniform_chrominanceTexture, 3);GLASSERT;
+        [src.plane setUniform:_uniform_luminanceTexture onUnit:2];
+        [src.subplane setUniform:_uniform_chrominanceTexture onUnit:3];
 
         [_vbo subDataOfAttribute:_attribute_inputTextureCoordinate withPointer:texture_coord withElems:4];
 
@@ -191,19 +187,10 @@ static void __calc_calibrated_texture_coordinate(GLfloat array2x4[8], double rol
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);GLASSERT;
         [[_vao class] unbind];
 
-        //const GLenum discards[]  = GL_COLOR_ATTACHMENT0};
-        //glBindFramebuffer(GL_FRAMEBUFFER, m_depthRenderbuffer);
-        glDiscardFramebufferEXT(GL_FRAMEBUFFER,1,(GLenum []){GL_COLOR_ATTACHMENT0});
+        [[_fbo class] discardColor];
+
         [[_fbo class] unbind];
     }];
-    /*
-    [dst.plane useWritable:^(void *buf) {
-        uint8_t *buf8 = buf;
-        for (int i = 0; i < 240; ++i) {
-            buf8[4 * 640 * i + 100] = 0xFF;
-        }
-    }];
-     */
 
     return YES;
 }
