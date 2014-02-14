@@ -5,7 +5,6 @@
 
 @interface MCVTextureRenderer()
 
-
 @end
 
 @implementation MCVTextureRenderer
@@ -35,12 +34,13 @@
 
 - (void)_setupShader
 {
-    extern char passthrough_1tex_vs_glsl[];
+    extern char texture_render_vs_glsl[];
     extern char passthrough_1tex_fs_glsl[];
 
-    [self setupShaderWithVS:NSSTR(passthrough_1tex_vs_glsl) withFS:NSSTR(passthrough_1tex_fs_glsl)];
+    _uniform_affine_mat = -1;
 
-    // TODO: scaling?
+    [self setupShaderWithVS:NSSTR(texture_render_vs_glsl) withFS:NSSTR(passthrough_1tex_fs_glsl)];
+
     static const GLfloat image_vertices[8] = {
         -1, -1,
         1, -1,
@@ -48,18 +48,11 @@
         1, 1
     };
 
-    // TODO: rotation?
     static const GLfloat texture_coordinates[8] = {
-        /*
-         0.0f, 1.0f,
-         1.0f, 1.0f,
-         0.0f, 0.0f,
-         1.0f, 0.0f,
-         */
-        1.0f, 0.0f,
         0.0f, 0.0f,
-        1.0f, 1.0f,
+        1.0f, 0.0f,
         0.0f, 1.0f,
+        1.0f, 1.0f,
     };
 
     _vao = [TGLVertexArrayObject create];
@@ -86,10 +79,18 @@
                                             {}
                                         }];
 
-    DUMPD(_vbo.name);
-    // save the state
     [[_vao class] unbind];
 
+    [self setAffineMatrix:GLKMatrix3Identity];
+}
+
+- (void)setAffineMatrix:(GLKMatrix3)mat
+{
+    [_program use];
+
+    glUniformMatrix3fv(_uniform_affine_mat, 1, GL_FALSE, mat.m);
+
+    [[_program class] unuse];
 }
 
 - (BOOL)process:(MCVBufferFreight *)src
@@ -106,7 +107,6 @@
 
     return YES;
 }
-
 
 @end
 

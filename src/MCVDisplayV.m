@@ -56,6 +56,8 @@
     [TGLDevice runMainThreadSync:^{
         _fbo = [TGLFrameBufferObject createOnEAGLStorage:[TGLDevice currentContext] withLayer:eagl_layer];
         _drawer = [MCVTextureRenderer create];
+
+        [_drawer setAffineMatrix:GLKMatrix3Make(-1, 0, 1, 0, 1, 0, 0, 0, 1)];
     }];
 }
 

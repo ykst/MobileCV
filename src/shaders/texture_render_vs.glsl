@@ -3,11 +3,13 @@
 attribute vec4 position;
 attribute vec4 inputTextureCoordinate;
 
+uniform highp mat3 affine_mat;
 
 varying vec2 textureCoordinate;
 
 void main()
 {
     gl_Position = position;
-    textureCoordinate = inputTextureCoordinate.xy;
+    textureCoordinate = (vec3(inputTextureCoordinate.xy, 1) * affine_mat).xy;
 }
+

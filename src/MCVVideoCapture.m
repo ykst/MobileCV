@@ -196,8 +196,6 @@
 
     [TGLDevice setContext:_context];
 
-    //freight = (id)[self.conduit outGet];
-
     BENCHMARK("refill")
     [freight refill:sampleBuffer];
 

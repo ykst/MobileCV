@@ -9,8 +9,11 @@
     GLint _attribute_position;
     GLint _attribute_inputTextureCoordinate;
     GLint _uniform_inputTexture;
+    GLint _uniform_affine_mat;
 }
 
 + (MCVTextureRenderer *)create;
+
+- (void)setAffineMatrix:(GLKMatrix3)mat;
 - (BOOL)process:(MCVBufferFreight *)src;
 @end
