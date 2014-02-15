@@ -125,7 +125,7 @@ static inline int __filter_blobs(
 
 // ref: A Simple and Efficient Connected Components Labeling Algorithm
 // http://www.researchgate.net/publication/3820852_A_simple_and_efficient_connected_components_labeling_algorithm/file/60b7d51496cb6be714.pdf
-// TODO: 微妙に間違ってるけど、性能は悪くないので放置している
+
 static inline int __extract_blobs(struct label_def *defs,
                                   const uint8_t * restrict img,
                                   uint16_t * restrict tmp,
@@ -173,16 +173,13 @@ static inline int __extract_blobs(struct label_def *defs,
                     odef = ndef;
 
                 } else if (lp && lq && defs[lp].mark != defs[lq].mark) {
-                    struct label_def *qdef = &defs[lq];
-                    struct label_def *pdef = &defs[lp];
+                    uint32_t to_change = defs[lp].mark;
 
-                    defs[lp].mark = defs[lq].mark;
-
-                    qdef->min_x = MIN(qdef->min_x, pdef->min_x);
-                    qdef->min_y = MIN(qdef->min_y, pdef->min_y);
-                    qdef->max_x = MAX(qdef->max_x, pdef->max_x);
-                    qdef->max_y = MAX(qdef->max_y, pdef->max_y);
-                    qdef->cnt += pdef->cnt;
+                    for (int i = 0; i < label_idx; ++i) {
+                        if (defs[i].mark == to_change) {
+                            defs[i].mark = defs[lq].mark;
+                        }
+                    }
 
                     lo = lq;
                 } else if (lq) {
@@ -203,6 +200,19 @@ static inline int __extract_blobs(struct label_def *defs,
         }
     }
 
+    for (int i = 0; i < label_idx; ++i) {
+        if (defs[i].mark != i) {
+            struct label_def *dst = &defs[defs[i].mark];
+            struct label_def *src = &defs[i];
+
+            dst->min_x = MIN(dst->min_x, src->min_x);
+            dst->min_y = MIN(dst->min_y, src->min_y);
+            dst->max_x = MAX(dst->max_x, src->max_x);
+            dst->max_y = MAX(dst->max_y, src->max_y);
+            dst->cnt += src->cnt;
+        }
+    }
+
     return label_idx;
 }
 
@@ -215,9 +225,10 @@ static inline int __ccl_process(
                                 struct MCVConnectedComponentConfig config)
 {
     memset(tmp, 0x00, w * sizeof(*tmp));
+    memset(defs, 0x00, max_labels * sizeof(*defs));
 
-    int max_label = __extract_blobs(defs, img, tmp, w, h, max_labels);
-    return __filter_blobs(defs, max_label, config);
+    int detected_labels = __extract_blobs(defs, img, tmp, w, h, max_labels);
+    return __filter_blobs(defs, detected_labels, config);
 }
 
 - (BOOL)debugProcess:(MCVBufferFreight *)src to:(MCVBufferFreight *)dst
@@ -299,7 +310,7 @@ static inline int __ccl_process(
         MCVConnectedComponent *c = [MCVConnectedComponent new];
         struct label_def *p = &_defs[i];
 
-        c.rect = CGRectMake(_size.width - p->min_x, p->min_y, p->max_x - p->min_x, p->max_y - p->min_y);
+        c.rect = CGRectMake(p->min_x, p->min_y, p->max_x - p->min_x, p->max_y - p->min_y);
         c.density = p->cnt / (float)(c.rect.size.width * c.rect.size.height);
 
         result[i] = c;
