@@ -177,7 +177,8 @@
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
 {
-    if (!_session.isRunning) {
+    MTNode *conduit = self.conduit;
+    if (!_session.isRunning || [conduit isPaused]) {
         return;
     }
 
@@ -187,12 +188,14 @@
         // FIXME:
         // blocking this dispatch queue seems to cause GL-context inconsistency
         // this is something related to deallocation but not explained fully.
-        if (self.conduit.num_out_get == 0) {
+        if (conduit.num_out_get == 0) {
             return;
         } else {
-            freight = (id)[self.conduit outGet];
+            freight = (id)[conduit outGet];
         }
     }
+
+    if (freight == nil) return;
 
     [TGLDevice setContext:_context];
 
@@ -209,7 +212,7 @@
         [freight modifyAttitude:0 :0 :0];
     }
 
-    [self.conduit outPut:freight];
+    [conduit outPut:freight];
 }
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didDropSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
