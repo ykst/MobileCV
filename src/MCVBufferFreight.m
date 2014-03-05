@@ -77,5 +77,10 @@
 
     return [saved simpleArchiveForKey:name];
 }
+
+- (UIImage *)uiImage
+{
+    return [_plane toUIImage];
+}
 @end
 

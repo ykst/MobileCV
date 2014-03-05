@@ -18,6 +18,7 @@
 + (MCVBufferFreight *)createWithTexture:(TGLMappedTexture2D *)texture;
 + (MCVBufferFreight *)createFromSaved:(NSString *)name;
 - (BOOL)save:(NSString *)name;
+- (UIImage *)uiImage;
 @end
 
 
