@@ -101,9 +101,11 @@ static inline bool ____benchmark_check_time(char const * const comment, uint64_t
     printf("%s: %.3fms\n", comment, nsec / 1000000.0);
     return false;
 }
-
+#ifdef MCV_ENABLE_BENCHMARK
 #define BENCHMARK(comment) for(uint64_t ____tick = 0, ____start = mach_absolute_time(); ____benchmark_check_time(comment, ____start, ____tick); ++____tick)
-
+#else
+#define BENCHMARK(comment)
+#endif
 #endif
 
 
