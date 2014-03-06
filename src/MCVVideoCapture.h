@@ -4,14 +4,17 @@
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 #import "MTPipeline.h"
+#import "MCVBufferFreight.h"
 
 @interface MCVVideoCapture : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate>
 
 @property (nonatomic, readonly) MTNode *conduit;
 
-+ (MCVVideoCapture *)createWithConduit:(MTNode *)conduit;
++ (instancetype)createWithConduit:(MTNode *)conduit;
 
-- (void) startCapture;
-- (void) stopCapture;
-- (BOOL) isCapturing; 
+- (void)startCapture;
+- (void)stopCapture;
+- (BOOL)isCapturing;
+
+- (void)appendMetaInfo:(MCVBufferFreight *)freight; // override this to automatically append extra information
 @end

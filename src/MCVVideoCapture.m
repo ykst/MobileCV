@@ -23,9 +23,9 @@
 @implementation MCVVideoCapture
 
 
-+ (MCVVideoCapture *)createWithConduit:(MTNode *)conduit
++ (instancetype)createWithConduit:(MTNode *)conduit
 {
-    MCVVideoCapture *obj = [[MCVVideoCapture alloc] init];
+    MCVVideoCapture *obj = [[[self class] alloc] init];
 
     obj.conduit = conduit;
 
@@ -175,6 +175,22 @@
     return [_session isRunning];
 }
 
+- (void)appendMetaInfo:(MCVBufferFreight *)freight
+{
+    // override this
+    /*
+    if (_core_motion) {
+        CMAttitude *attitude  = _core_motion.deviceMotion.attitude;
+        CMAcceleration user_accel  = _core_motion.deviceMotion.userAcceleration;
+        [freight modifyAttitude:attitude.roll :attitude.pitch :attitude.yaw];
+
+        freight.user_accel = GLKVector3Make(user_accel.x, user_accel.y, user_accel.z);
+    } else {
+        [freight modifyAttitude:0 :0 :0];
+    }
+     */
+}
+
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
 {
     MTNode *conduit = self.conduit;
@@ -202,15 +218,7 @@
     BENCHMARK("refill")
     [freight refill:sampleBuffer];
 
-    if (_core_motion) {
-        CMAttitude *attitude  = _core_motion.deviceMotion.attitude;
-        CMAcceleration user_accel  = _core_motion.deviceMotion.userAcceleration;
-        [freight modifyAttitude:attitude.roll :attitude.pitch :attitude.yaw];
-
-        freight.user_accel = GLKVector3Make(user_accel.x, user_accel.y, user_accel.z);
-    } else {
-        [freight modifyAttitude:0 :0 :0];
-    }
+    [self appendMetaInfo:freight];
 
     [conduit outPut:freight];
 }
