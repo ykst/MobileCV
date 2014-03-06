@@ -62,7 +62,7 @@
 
 + (MCVCameraBufferFreight *)create
 {
-    MCVCameraBufferFreight *obj = [[MCVCameraBufferFreight alloc] init];
+    MCVCameraBufferFreight *obj = [[[self class] alloc] init];
 
     return obj;
 }

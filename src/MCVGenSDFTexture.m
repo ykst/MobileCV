@@ -15,7 +15,7 @@
 
 @implementation MCVGenSDFTexture
 
-+ (MCVGenSDFTexture *)createWithOutputSize:(CGSize)size
++ (instancetype)createWithOutputSize:(CGSize)size
 {
     id obj = [[[self class] alloc] initWithSize:size];
 

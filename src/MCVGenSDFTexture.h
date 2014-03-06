@@ -5,7 +5,7 @@
 #import "MCVBufferFreight.h"
 
 @interface MCVGenSDFTexture : TGLShaderWrapper
-+ (MCVGenSDFTexture *)createWithOutputSize:(CGSize)size;
++ (instancetype)createWithOutputSize:(CGSize)size;
 - (TGLMappedTexture2D *)process:(MCVBufferFreight *)src;
 @end
 

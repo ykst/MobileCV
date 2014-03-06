@@ -12,7 +12,7 @@ typedef NS_ENUM(NSInteger, GLColorConverterType) {
     GLCCV_TYPE_YUV420P_RGBA,
 };
 
-+ (MCVColorConverter *)createWithType:(GLColorConverterType)type;
++ (instancetype)createWithType:(GLColorConverterType)type;
 
 - (BOOL)process:(MCVBufferFreight *)src to:(MCVBufferFreight *)dst;
 @end

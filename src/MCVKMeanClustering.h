@@ -8,7 +8,7 @@
 
 @interface MCVKMeanClustering : TGLShaderWrapper
 
-+ (MCVKMeanClustering *)createWithMaxPoints:(size_t)points;
++ (instancetype)createWithMaxPoints:(size_t)points;
 
 - (BOOL)process:(MCVPointFeatureFreight *)srcdst;
 

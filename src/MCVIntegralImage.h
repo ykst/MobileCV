@@ -5,7 +5,7 @@
 #import "MCVBufferFreight.h"
 
 @interface MCVIntegralImage : TGLShaderWrapper
-+ (MCVIntegralImage *)create;
++ (instancetype)create;
 
 - (BOOL)process:(MCVBufferFreight *)src to:(MCVBufferFreight *)dst;
 @end

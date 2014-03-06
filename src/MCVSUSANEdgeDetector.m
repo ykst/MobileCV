@@ -14,10 +14,9 @@
 
 @implementation MCVSUSANEdgeDetector
 
-+(id)create;
-
++(instancetype)create;
 {
-    id obj = [[[self class] alloc] init];
+    MCVSUSANEdgeDetector *obj = [[[self class] alloc] init];
 
     return obj;
 }

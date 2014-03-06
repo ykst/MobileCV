@@ -8,7 +8,7 @@
 @property (nonatomic, readwrite) int16_t maximum_classes;
 
 // buf = [x, y, classes]
-+ (MCVPointFeatureFreight *)createWithCount:(size_t)count;
++ (instancetype)createWithCount:(size_t)count;
 
 @end
 

@@ -6,7 +6,7 @@
 
 @interface MCVLBPFilter : TGLShaderWrapper
 
-+ (MCVLBPFilter *)create;
++ (instancetype)create;
 
 - (BOOL)process:(MCVBufferFreight *)src to:(MCVBufferFreight *)dst;
 @end

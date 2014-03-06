@@ -5,9 +5,9 @@
 
 @implementation MCVIntegralImage
 
-+ (MCVIntegralImage *)create
++ (instancetype)create
 {
-    MCVIntegralImage *obj = [[MCVIntegralImage alloc] init];
+    MCVIntegralImage *obj = [[[self class] alloc] init];
 
     return obj;
 }

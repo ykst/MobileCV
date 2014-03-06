@@ -7,7 +7,7 @@
 #import "TGLShaderWrapper.h"
 
 @interface MCVDerivativeImage : TGLShaderWrapper
-+ (MCVDerivativeImage *)create;
++ (instancetype)create;
 
 - (BOOL)process:(MCVBufferFreight *)src to:(MCVBufferFreight *)dst withFeature:(MCVPointFeatureFreight *)feature;
 @end

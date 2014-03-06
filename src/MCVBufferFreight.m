@@ -27,9 +27,9 @@
 
 @implementation MCVBufferFreight
 
-+ (MCVBufferFreight *)createWithSize:(CGSize)size withInternalFormat:(GLenum)internal_format withSmooth:(BOOL)smooth
++ (instancetype)createWithSize:(CGSize)size withInternalFormat:(GLenum)internal_format withSmooth:(BOOL)smooth
 {
-    MCVBufferFreight *obj = [[MCVBufferFreight alloc] init];
+    MCVBufferFreight *obj = [[[self class] alloc] init];
 
     obj.plane = [TGLMappedTexture2D createWithSize:size withInternalFormat:internal_format withSmooth:smooth];
     obj.size = size;
@@ -38,9 +38,9 @@
     return obj;
 }
 
-+ (MCVBufferFreight *)createWithTexture:(TGLMappedTexture2D *)texture
++ (instancetype)createWithTexture:(TGLMappedTexture2D *)texture
 {
-    MCVBufferFreight *obj = [[MCVBufferFreight alloc] init];
+    MCVBufferFreight *obj = [[[self class] alloc] init];
 
     obj.plane = texture;
     obj.size = texture.size;
@@ -49,11 +49,11 @@
     return obj;
 }
 
-+ (MCVBufferFreight *)createFromSaved:(NSString *)name
++ (instancetype)createFromSaved:(NSString *)name
 {
     MCVBufferFreightSaved *saved = [MCVBufferFreightSaved simpleUnarchiveForKey:name];
 
-    MCVBufferFreight *obj = [MCVBufferFreight createWithSize:saved.size withInternalFormat:saved.internal_format withSmooth:saved.smooth];
+    MCVBufferFreight *obj = [[self class] createWithSize:saved.size withInternalFormat:saved.internal_format withSmooth:saved.smooth];
 
     [obj.plane useWritable:^(void *buf) {
         memcpy(buf, saved.data.bytes, saved.data.length);

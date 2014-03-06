@@ -6,7 +6,7 @@
 
 @interface MCVSUSANEdgeDetector : TGLShaderWrapper
 
-+ (MCVSUSANEdgeDetector *)create;
++ (instancetype)create;
 - (BOOL)process:(MCVBufferFreight *)src  to:(MCVBufferFreight *)dst;
 //- (BOOL)process:(GLBufferFreight *)src withForeGround:(GLBufferFreight *)fg to:(GLBufferFreight *)dst;
 

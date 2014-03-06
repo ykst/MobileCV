@@ -10,6 +10,6 @@
 #import "MCVBufferFreight.h"
 
 @interface MCVTexturePassthrough : TGLShaderWrapper
-+ (MCVTexturePassthrough *)create;
++ (instancetype)create;
 - (BOOL)process:(MCVBufferFreight *)src to:(MCVBufferFreight *)dst;
 @end

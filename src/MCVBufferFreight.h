@@ -14,9 +14,9 @@
 @property (nonatomic, readonly) GLenum internal_format;
 @property (nonatomic, readwrite) GLKVector3 user_accel;
 
-+ (MCVBufferFreight *)createWithSize:(CGSize)size withInternalFormat:(GLenum)internal_format withSmooth:(BOOL)smooth;
-+ (MCVBufferFreight *)createWithTexture:(TGLMappedTexture2D *)texture;
-+ (MCVBufferFreight *)createFromSaved:(NSString *)name;
++ (instancetype)createWithSize:(CGSize)size withInternalFormat:(GLenum)internal_format withSmooth:(BOOL)smooth;
++ (instancetype)createWithTexture:(TGLMappedTexture2D *)texture;
++ (instancetype)createFromSaved:(NSString *)name;
 - (BOOL)save:(NSString *)name;
 - (UIImage *)uiImage;
 @end

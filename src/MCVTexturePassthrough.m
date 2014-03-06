@@ -17,7 +17,7 @@
 
 @implementation MCVTexturePassthrough
 
-+ (MCVTexturePassthrough *)create
++ (instancetype)create
 {
     MCVTexturePassthrough *obj = [[[self class] alloc] init];
 

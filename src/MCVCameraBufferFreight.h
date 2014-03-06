@@ -5,7 +5,7 @@
 
 @interface MCVCameraBufferFreight : MCVBufferFreight<MCVSubPlanerBufferProtocol, MCVAttitudeFreightProtocol>
 
-+ (MCVCameraBufferFreight *)create;
++ (instancetype)create;
 - (void)refill:(CMSampleBufferRef)sample;
 
 - (void)modifyAttitude:(double)roll :(double)pitch :(double)yaw;

@@ -29,12 +29,12 @@ struct label_def {
 
 @implementation MCVConnectedComponentLabeling
 
-+ (MCVConnectedComponentLabeling *)createWithSize:(CGSize)size
++ (instancetype)createWithSize:(CGSize)size
 {
-    return [MCVConnectedComponentLabeling createWithSize:size withMaxLabels:MCVConnectedComponentMaxLabelsDefault];
+    return [[self class] createWithSize:size withMaxLabels:MCVConnectedComponentMaxLabelsDefault];
 }
 
-+ (MCVConnectedComponentLabeling *)createWithSize:(CGSize)size withMaxLabels:(size_t)max_labels
++ (instancetype)createWithSize:(CGSize)size withMaxLabels:(size_t)max_labels
 {
     id obj = [[[self class] alloc] initWithSize:size withMaxLabels:max_labels];
 

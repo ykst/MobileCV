@@ -17,9 +17,9 @@
 @implementation MCVDerivativeImage
 
 
-+ (MCVDerivativeImage *)create
++ (instancetype)create
 {
-    MCVDerivativeImage *obj = [[MCVDerivativeImage alloc] init];
+    MCVDerivativeImage *obj = [[[self class] alloc] init];
 
     return obj;
 }

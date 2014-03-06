@@ -26,8 +26,8 @@ struct MCVConnectedComponentConfig {
 
 @property (nonatomic, readonly) GLint max_labels;
 
-+ (MCVConnectedComponentLabeling *)createWithSize:(CGSize)size;
-+ (MCVConnectedComponentLabeling *)createWithSize:(CGSize)size withMaxLabels:(size_t)max_labels;
++ (instancetype)createWithSize:(CGSize)size;
++ (instancetype)createWithSize:(CGSize)size withMaxLabels:(size_t)max_labels;
 
 - (BOOL)configure:(struct MCVConnectedComponentConfig)config;
 

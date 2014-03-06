@@ -24,9 +24,9 @@
 
 @implementation MCVColorConverter
 
-+ (MCVColorConverter *)createWithType:(GLColorConverterType)type
++ (instancetype)createWithType:(GLColorConverterType)type
 {
-    MCVColorConverter *obj = [[MCVColorConverter alloc] initWithType:type];
+    MCVColorConverter *obj = [[[self class] alloc] initWithType:type];
 
     return obj;
 }

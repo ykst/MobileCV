@@ -11,9 +11,9 @@
 
 @implementation MCVLBPFilter
 
-+(MCVLBPFilter *)create
++ (instancetype)create
 {
-    id obj = [[[self class] alloc] init];
+    MCVLBPFilter *obj = [[[self class] alloc] init];
 
     return obj;
 }

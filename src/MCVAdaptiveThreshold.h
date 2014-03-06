@@ -6,7 +6,7 @@
 
 @interface MCVAdaptiveThreshold : TGLShaderWrapper
 
-+ (id)createWithBias:(GLfloat)bias withScreenSize:(CGSize)screen_size withWindowSize:(CGSize)window_size;
++ (instancetype)createWithBias:(GLfloat)bias withScreenSize:(CGSize)screen_size withWindowSize:(CGSize)window_size;
 - (BOOL)process:(MCVBufferFreight *)src withIntegral:(MCVBufferFreight *)integral to:(MCVBufferFreight *)dst;
 @end
 

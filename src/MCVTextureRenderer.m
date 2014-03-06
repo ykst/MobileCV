@@ -9,7 +9,7 @@
 
 @implementation MCVTextureRenderer
 
-+ (MCVTextureRenderer *)create
++ (instancetype)create
 {
     MCVTextureRenderer *obj = [[[self class] alloc] init];
     return obj;

@@ -46,9 +46,9 @@
 // TODO: paramerize
 static const int maximum_cluster_num = 14;
 
-+ (MCVKMeanClustering *)createWithMaxPoints:(size_t)points
++ (instancetype)createWithMaxPoints:(size_t)points
 {
-    MCVKMeanClustering *obj = [[MCVKMeanClustering alloc] initWithMaxPoints:points];
+    MCVKMeanClustering *obj = [[[self class] alloc] initWithMaxPoints:points];
 
     return obj;
 }

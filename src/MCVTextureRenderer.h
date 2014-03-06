@@ -12,7 +12,7 @@
     GLint _uniform_affine_mat;
 }
 
-+ (MCVTextureRenderer *)create;
++ (instancetype)create;
 
 - (void)setAffineMatrix:(GLKMatrix3)mat;
 - (BOOL)process:(MCVBufferFreight *)src;

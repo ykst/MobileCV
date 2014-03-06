@@ -15,10 +15,10 @@
 
 @implementation MCVAdaptiveThreshold
 
-+(id)createWithBias:(GLfloat)bias withScreenSize:(CGSize)screen_size withWindowSize:(CGSize)window_size
++(instancetype)createWithBias:(GLfloat)bias withScreenSize:(CGSize)screen_size withWindowSize:(CGSize)window_size
 
 {
-    id obj = [[[self class] alloc] initWithBias:bias withScreenSize:(CGSize)screen_size  withWindowSize:window_size];
+    MCVAdaptiveThreshold *obj = [[[self class] alloc] initWithBias:bias withScreenSize:(CGSize)screen_size  withWindowSize:window_size];
 
     return obj;
 }

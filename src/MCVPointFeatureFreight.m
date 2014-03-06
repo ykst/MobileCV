@@ -10,9 +10,10 @@
 
 @implementation MCVPointFeatureFreight
 @synthesize effective_elems = _effective_elems;
-+ (MCVPointFeatureFreight *)createWithCount:(size_t)count
+
++ (instancetype)createWithCount:(size_t)count
 {
-    MCVPointFeatureFreight *obj = [[MCVPointFeatureFreight alloc] init];
+    MCVPointFeatureFreight *obj = [[[self class] alloc] init];
 
     TALLOCS(obj.buf, count, NSASSERT(!"OOM"));
 
