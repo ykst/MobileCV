@@ -9,8 +9,12 @@
 @interface MCVVideoCapture : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate>
 
 @property (nonatomic, readonly) MTNode *conduit;
+@property (nonatomic, readonly) CGSize capture_size;
+
+@property (nonatomic, readonly) BOOL capture_size_available;
 
 + (instancetype)createWithConduit:(MTNode *)conduit;
++ (instancetype)createWithConduit:(MTNode *)conduit withInputPreset:(NSString *)preset; // AVCaptureSessionPreset*
 
 - (void)startCapture;
 - (void)stopCapture;

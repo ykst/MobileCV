@@ -22,14 +22,33 @@
 
 @implementation MCVVideoCapture
 
-
-+ (instancetype)createWithConduit:(MTNode *)conduit
++ (instancetype)createWithConduit:(MTNode *)conduit withInputPreset:(NSString *)preset
 {
     MCVVideoCapture *obj = [[[self class] alloc] init];
 
     obj.conduit = conduit;
 
+    [obj _setupWithPreset:preset];
+
     return obj;
+}
+
+// backward compat version
++ (instancetype)createWithConduit:(MTNode *)conduit
+{
+    return [[self class] createWithConduit:conduit withInputPreset:AVCaptureSessionPreset640x480];
+}
+
+- (void)_setupWithPreset:(NSString *)preset
+{
+    // TODO: select another device?
+    [self _setupDevice];
+    [self _setupInput];
+    [self _setupOutput];
+    [self _setupFramerate];
+    [self _setupSession:preset];
+    [self _setupCoreMotion];
+    [self _setupGLContext];
 }
 
 - (void)_setupDevice
@@ -46,9 +65,8 @@
 - (void)_setupInput
 {
     NSError *error = nil;
-    AVCaptureDeviceInput *input  = [[AVCaptureDeviceInput alloc] initWithDevice:_device error:&error];
 
-    //DUMPS([error localizedDescription]);
+    AVCaptureDeviceInput *input  = [[AVCaptureDeviceInput alloc] initWithDevice:_device error:&error];
 
     _input = input;
 }
@@ -60,21 +78,12 @@
 
     [output setVideoSettings:@{(id)kCVPixelBufferPixelFormatTypeKey:@(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange)}];
 
-    //[output setVideoSettings:@{(id)kCVPixelBufferPixelFormatTypeKey:@(kCVPixelFormatType_32BGRA)}];
-
-    // TODO: select?
-    /*
-     [output setVideoSettings:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange] forKey:(id)kCVPixelBufferPixelFormatTypeKey]];
-
-     [output setVideoSettings:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kCVPixelFormatType_32BGRA] forKey:(id)kCVPixelBufferPixelFormatTypeKey]];
-     */
-
-    [output setAlwaysDiscardsLateVideoFrames:YES]; // TODO: is this necessary?
+    [output setAlwaysDiscardsLateVideoFrames:YES];
 
     _queue = dispatch_queue_create("com.monadworks.mcv.video", NULL);
+
     // TODO: concurrent queue occasionaly cause crash on resource handling. figures
     // dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW,0);
-
     [output setSampleBufferDelegate:self queue:_queue];
 
     _output = output;
@@ -85,11 +94,13 @@
      for (AVCaptureConnection *connection in _output.connections) {
      #pragma clang diagnostic push
      #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-     if ([connection respondsToSelector:@selector(setVideoMinFrameDuration:)])
-     connection.videoMinFrameDuration = CMTimeMake(1, 30);
+         if ([connection respondsToSelector:@selector(setVideoMinFrameDuration:)]) {
+             connection.videoMinFrameDuration = CMTimeMake(1, 30);
+         }
 
-     if ([connection respondsToSelector:@selector(setVideoMaxFrameDuration:)])
-     connection.videoMaxFrameDuration = CMTimeMake(1, 30);
+         if ([connection respondsToSelector:@selector(setVideoMaxFrameDuration:)]) {
+             connection.videoMaxFrameDuration = CMTimeMake(1, 30);
+         }
      #pragma clang diagnostic pop
      }
 
@@ -103,7 +114,7 @@
      */
 }
 
-- (void)_setupSession
+- (void)_setupSession:(NSString *)preset
 {
     AVCaptureSession *session = [[AVCaptureSession alloc] init];
 
@@ -117,17 +128,29 @@
 
     [session beginConfiguration];
     {
-        NSString *preset = AVCaptureSessionPreset640x480; // TODO: modifieable
-
         [session setSessionPreset:preset];
-
     }
     [session commitConfiguration];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_inputSettingChanged) name:AVCaptureInputPortFormatDescriptionDidChangeNotification object:nil];
 
     _session = session;
 }
 
-- (void) _setupCoreMotion
+- (void)_inputSettingChanged
+{
+    AVCaptureInput *input = _session.inputs[0];
+    AVCaptureInputPort *port = input.ports[0];
+    CMFormatDescriptionRef formatDescription = port.formatDescription;
+    CMVideoDimensions dimension = CMVideoFormatDescriptionGetDimensions(formatDescription);
+
+    _capture_size.width = dimension.width;
+    _capture_size.height = dimension.height;
+
+    _capture_size_available = YES;
+}
+
+- (void)_setupCoreMotion
 {
     CMMotionManager *manager = [[CMMotionManager alloc] init];
 
@@ -142,22 +165,6 @@
 - (void)_setupGLContext
 {
     _context = [TGLDevice createContext];
-}
-
-- (id)init
-{
-    self = [super init];
-    if (self) {
-        // TODO: select another device?
-        [self _setupDevice];
-        [self _setupInput];
-        [self _setupOutput];
-        [self _setupFramerate];
-        [self _setupSession];
-        [self _setupCoreMotion];
-        [self _setupGLContext];
-    }
-    return self;
 }
 
 - (void)startCapture
@@ -198,6 +205,7 @@
         return;
     }
 
+
     MCVCameraBufferFreight *freight;
 
     BENCHMARK("wait buffer") {
@@ -218,6 +226,8 @@
     BENCHMARK("refill")
     [freight refill:sampleBuffer];
 
+    [TGLDevice setContext:nil];
+
     [self appendMetaInfo:freight];
 
     [conduit outPut:freight];
@@ -230,7 +240,7 @@
 
 - (void)dealloc
 {
-    ICHECK;
+    //ICHECK;
 }
 
 @end
