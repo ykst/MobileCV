@@ -23,6 +23,7 @@
 @property (nonatomic, readwrite) TGLMappedTexture2D *plane;
 @property (nonatomic, readwrite) CGSize size;
 @property (nonatomic, readwrite) GLenum internal_format;
+@property (nonatomic, readwrite) BOOL smooth;
 @end
 
 @implementation MCVBufferFreight
@@ -33,6 +34,7 @@
 
     obj.plane = [TGLMappedTexture2D createWithSize:size withInternalFormat:internal_format withSmooth:smooth];
     obj.size = size;
+    obj.smooth = smooth;
     obj.internal_format = internal_format;
 
     return obj;
@@ -45,6 +47,7 @@
     obj.plane = texture;
     obj.size = texture.size;
     obj.internal_format = texture.internal_format;
+    obj.smooth = texture.smooth;
 
     return obj;
 }
@@ -76,6 +79,14 @@
     [_plane unlockReadonly];
 
     return [saved simpleArchiveForKey:name];
+}
+
+- (BOOL)resize:(CGSize)size
+{
+    _plane = [TGLMappedTexture2D createWithSize:size withInternalFormat:_internal_format withSmooth:_smooth];
+    _size = size;
+
+    return _plane != nil;
 }
 
 - (UIImage *)uiImage
