@@ -6,7 +6,11 @@
 #import "MCVBufferFreight.h"
 #import "MCVTextureRenderer.h"
 
-@interface MCVDisplayV : GLKView
+@interface MCVDisplayV : GLKView {
+    @protected
+    MCVTextureRenderer *_drawer;
+    TGLFrameBufferObject *_fbo;
+}
 
 - (void)setDrawer:(MCVTextureRenderer *(^)())setter;
 - (BOOL)drawBuffer:(MCVBufferFreight *)freight;

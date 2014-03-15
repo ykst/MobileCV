@@ -205,7 +205,6 @@
         return;
     }
 
-
     MCVCameraBufferFreight *freight;
 
     BENCHMARK("wait buffer") {

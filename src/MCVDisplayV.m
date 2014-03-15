@@ -9,10 +9,7 @@
 #import "TGLFrameBufferObject.h"
 #import "MCVTextureRenderer.h"
 
-@interface MCVDisplayV() {
-    MCVTextureRenderer *_drawer;
-    TGLFrameBufferObject *_fbo;
-}
+@interface MCVDisplayV() 
 @end
 
 @implementation MCVDisplayV
