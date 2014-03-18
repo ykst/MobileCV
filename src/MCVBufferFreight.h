@@ -6,7 +6,12 @@
 #import "TGLDevice.h"
 #import "TGLMappedTexture2D.h"
 
-@interface MCVBufferFreight : MCVFreight
+@interface MCVBufferFreight : MCVFreight {
+    @protected
+    CGSize _size;
+    TGLMappedTexture2D *_plane;
+    GLenum _internal_format;
+}
 
 @property (nonatomic, readwrite) NSArray *ext; // FIXME: bullshit
 @property (nonatomic, readonly) TGLMappedTexture2D *plane;

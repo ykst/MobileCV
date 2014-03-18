@@ -49,7 +49,7 @@ struct label_def {
     if (self) {
         _size = size;
         _config = MCVConnectedComponentConfigDefault;
-        _max_labels = max_labels;
+        _max_labels = (GLint)max_labels;
         TALLOCS(_defs, _max_labels, NSASSERT(!"OOM"));
 
         // we do not make a fully labeled image but its logical blob informations. so 1 line of working buffer is suffice

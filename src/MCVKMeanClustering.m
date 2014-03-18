@@ -59,7 +59,7 @@ static const int maximum_cluster_num = 14;
     if (self) {
 
         [TGLDevice runPassiveContextSync:^{
-            _max_points = points;
+            _max_points = (GLsizei)points;
             [self _setupShader];
         }];
 
@@ -393,7 +393,7 @@ static void __sort_point_buf_by_x(GLfloat *buf, size_t point_count)
 - (BOOL)process:(MCVPointFeatureFreight *)srcdst;
 {
     GLfloat *point_buf = (GLfloat *)srcdst.buf;
-    GLsizei effective_points = srcdst.effective_elems;
+    GLsizei effective_points = (GLsizei)srcdst.effective_elems;
 
     // nothing to do when clustering target did not present
     if (effective_points < maximum_cluster_num) return YES;

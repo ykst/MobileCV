@@ -121,7 +121,7 @@
         size_t effective_points = 0;
         int width = src.size.width;
         int height = src.size.height;
-        int max_points = feature.total_elems;
+        size_t max_points = feature.total_elems;
 
         // TODO: MUST be vectorized. it takes up 5ms for VGA
         for (int i = 0; i < height ; ++i) {
