@@ -10,11 +10,13 @@
 
 @property (nonatomic, readonly) MTNode *conduit;
 @property (nonatomic, readonly) CGSize capture_size;
-
+@property (nonatomic, readonly) AVCaptureDevicePosition position;
 @property (nonatomic, readonly) BOOL capture_size_available;
 
 + (instancetype)createWithConduit:(MTNode *)conduit;
 + (instancetype)createWithConduit:(MTNode *)conduit withInputPreset:(NSString *)preset; // AVCaptureSessionPreset*
++ (instancetype)createWithConduit:(MTNode *)conduit withInputPreset:(NSString *)preset withPosition:(AVCaptureDevicePosition)position; // AVCaptureSessionPreset*
++ (NSArray *)countSupportedPositions;
 
 - (void)startCapture;
 - (void)stopCapture;

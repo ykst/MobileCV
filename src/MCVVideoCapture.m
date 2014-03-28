@@ -22,15 +22,32 @@
 
 @implementation MCVVideoCapture
 
-+ (instancetype)createWithConduit:(MTNode *)conduit withInputPreset:(NSString *)preset
++ (NSArray *)countSupportedPositions
+{
+    NSMutableArray *result = [NSMutableArray array];
+    NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+
+    for (AVCaptureDevice *device in devices) {
+        [result addObject:@([device position])];
+    }
+
+    return result;
+}
+
++ (instancetype)createWithConduit:(MTNode *)conduit withInputPreset:(NSString *)preset withPosition:(AVCaptureDevicePosition)position
 {
     MCVVideoCapture *obj = [[[self class] alloc] init];
 
     obj.conduit = conduit;
 
-    [obj _setupWithPreset:preset];
+    [obj _setupWithPreset:preset withPosition:position];
 
     return obj;
+}
+
++ (instancetype)createWithConduit:(MTNode *)conduit withInputPreset:(NSString *)preset
+{
+    return [[self class] createWithConduit:conduit withInputPreset:preset withPosition:AVCaptureDevicePositionBack];
 }
 
 // backward compat version
@@ -39,10 +56,10 @@
     return [[self class] createWithConduit:conduit withInputPreset:AVCaptureSessionPreset640x480];
 }
 
-- (void)_setupWithPreset:(NSString *)preset
+- (void)_setupWithPreset:(NSString *)preset withPosition:(AVCaptureDevicePosition)position
 {
     // TODO: select another device?
-    [self _setupDevice];
+    [self _setupDeviceOfPosition:position];
     [self _setupInput];
     [self _setupOutput];
     [self _setupFramerate];
@@ -51,12 +68,13 @@
     [self _setupGLContext];
 }
 
-- (void)_setupDevice
+- (void)_setupDeviceOfPosition:(AVCaptureDevicePosition)position
 {
     NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
     for (AVCaptureDevice *device in devices) {
-        if ([device position] == AVCaptureDevicePositionBack) {
+        if ([device position] == position) {
             _device = device;
+            _position = position;
             break;
         }
     }
