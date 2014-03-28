@@ -157,6 +157,8 @@
 
 - (void)_inputSettingChanged
 {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+
     AVCaptureInput *input = _session.inputs[0];
     AVCaptureInputPort *port = input.ports[0];
     CMFormatDescriptionRef formatDescription = port.formatDescription;
