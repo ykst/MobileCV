@@ -17,6 +17,9 @@
 + (instancetype)createWithConduit:(MTNode *)conduit withInputPreset:(NSString *)preset; // AVCaptureSessionPreset*
 + (instancetype)createWithConduit:(MTNode *)conduit withInputPreset:(NSString *)preset withPosition:(AVCaptureDevicePosition)position; // AVCaptureSessionPreset*
 + (NSArray *)countSupportedPositions;
++ (BOOL)hasTorch;
++ (BOOL)torchIsOn;
++ (void)turnTorchOn:(BOOL)on;
 
 - (void)startCapture;
 - (void)stopCapture;

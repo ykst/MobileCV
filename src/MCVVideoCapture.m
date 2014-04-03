@@ -34,6 +34,53 @@
     return result;
 }
 
+static int __torch_support = -1;
+static BOOL __torch_on = NO;
+
++ (BOOL)hasTorch
+{
+    if (__torch_support < 0) {
+        AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+        if ([device respondsToSelector:@selector(hasTorch)] &&
+            [device respondsToSelector:@selector(hasFlash)] &&
+            [device hasTorch] && [device hasFlash]) {
+            __torch_support = 1;
+        } else {
+            __torch_support = 0;
+        }
+    }
+
+    return __torch_support == 1;
+}
+
++ (BOOL)torchIsOn
+{
+    return __torch_on;
+}
+
++ (void)turnTorchOn:(BOOL)on
+{
+    // check if flashlight available
+    Class captureDeviceClass = NSClassFromString(@"AVCaptureDevice");
+    if (captureDeviceClass != nil && [[self class] hasTorch]) {
+
+        AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+        [device lockForConfiguration:nil];
+
+        if (on) {
+            [device setTorchMode:AVCaptureTorchModeOn];
+            [device setFlashMode:AVCaptureFlashModeOn];
+            __torch_on = YES;
+        } else {
+            [device setTorchMode:AVCaptureTorchModeOff];
+            [device setFlashMode:AVCaptureFlashModeOff];
+            __torch_on = NO;
+        }
+        [device unlockForConfiguration];
+    }
+}
+
+
 + (instancetype)createWithConduit:(MTNode *)conduit withInputPreset:(NSString *)preset withPosition:(AVCaptureDevicePosition)position
 {
     MCVVideoCapture *obj = [[[self class] alloc] init];
