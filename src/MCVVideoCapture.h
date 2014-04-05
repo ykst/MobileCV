@@ -24,6 +24,8 @@
 - (void)startCapture;
 - (void)stopCapture;
 - (BOOL)isCapturing;
-
+- (BOOL)focusPointSupported;
+- (void)setFocusPoint:(CGPoint)focus_point;
+- (void)setAutoFocus;
 - (void)appendMetaInfo:(MCVBufferFreight *)freight; // override this to automatically append extra information
 @end

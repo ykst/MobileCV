@@ -14,6 +14,7 @@
     dispatch_queue_t _queue;
     CMMotionManager *_core_motion;
     EAGLContext *_context;
+    BOOL _focus_supported;
 }
 
 @property (nonatomic, readwrite) MTNode *conduit;
@@ -44,6 +45,7 @@ static BOOL __torch_on = NO;
         if ([device respondsToSelector:@selector(hasTorch)] &&
             [device respondsToSelector:@selector(hasFlash)] &&
             [device hasTorch] && [device hasFlash]) {
+
             __torch_support = 1;
         } else {
             __torch_support = 0;
@@ -122,6 +124,11 @@ static BOOL __torch_on = NO;
         if ([device position] == position) {
             _device = device;
             _position = position;
+            _focus_supported =
+                [_device respondsToSelector:@selector(isFocusPointOfInterestSupported)] &&
+                [_device respondsToSelector:@selector(focusMode)] &&
+                [_device respondsToSelector:@selector(setFocusPointOfInterest:)] &&
+                [_device isFocusPointOfInterestSupported];
             break;
         }
     }
@@ -247,6 +254,30 @@ static BOOL __torch_on = NO;
 - (BOOL)isCapturing
 {
     return [_session isRunning];
+}
+
+- (BOOL)focusPointSupported
+{
+    return _focus_supported;
+}
+
+- (void)setFocusPoint:(CGPoint)focus_point
+{
+    if (_focus_supported) {
+        [_device lockForConfiguration:nil];
+        _device.focusMode = AVCaptureFocusModeAutoFocus;
+        [_device setFocusPointOfInterest:focus_point];
+        [_device unlockForConfiguration];
+    }
+}
+
+- (void)setAutoFocus
+{
+    if (_focus_supported) {
+        [_device lockForConfiguration:nil];
+        _device.focusMode = AVCaptureFocusModeContinuousAutoFocus;
+        [_device unlockForConfiguration];
+    }
 }
 
 - (void)appendMetaInfo:(MCVBufferFreight *)freight
