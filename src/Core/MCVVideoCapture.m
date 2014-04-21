@@ -1,10 +1,10 @@
 // Copyright (c) 2014 Yohsuke Yukishita
 // This software is released under the MIT License: http://opensource.org/licenses/mit-license.php
 
-#import <CoreMotion/CoreMotion.h>
 #import "MCVVideoCapture.h"
 #import "TGLDevice.h"
 #import "MCVCameraBufferFreight.h"
+
 @interface MCVVideoCapture() {
     @protected
     AVCaptureDevice *_device;
@@ -12,7 +12,6 @@
     AVCaptureDeviceInput *_input;
     AVCaptureVideoDataOutput *_output;
     dispatch_queue_t _queue;
-    CMMotionManager *_core_motion;
     EAGLContext *_context;
     BOOL _focus_supported;
 }
@@ -112,7 +111,6 @@ static BOOL __torch_on = NO;
     [self _setupOutput];
     [self _setupFramerate];
     [self _setupSession:preset];
-    [self _setupCoreMotion];
     [self _setupGLContext];
 }
 
@@ -224,18 +222,6 @@ static BOOL __torch_on = NO;
     _capture_size.height = dimension.height;
 
     _capture_size_available = YES;
-}
-
-- (void)_setupCoreMotion
-{
-    CMMotionManager *manager = [[CMMotionManager alloc] init];
-
-    if (manager.deviceMotionAvailable) {
-
-        [manager startDeviceMotionUpdates];
-
-        _core_motion = manager;
-    }
 }
 
 - (void)_setupGLContext

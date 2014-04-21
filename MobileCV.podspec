@@ -27,7 +27,7 @@ Pod::Spec.new do |s|
   s.public_header_files = 'src/**/MCV*.h'
   s.requires_arc = true
 
-  s.frameworks = 'CoreMotion', 'UIKit', 'CoreGraphics'
+  s.frameworks = 'UIKit', 'CoreGraphics'
 
   s.subspec 'Core' do |sub|
     sub.source_files  = 'src/Core/*.{h,m}', 'src/Core/shaders/*.glsl'
