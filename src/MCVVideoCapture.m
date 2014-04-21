@@ -82,7 +82,6 @@ static BOOL __torch_on = NO;
     }
 }
 
-
 + (instancetype)createWithConduit:(MTNode *)conduit withInputPreset:(NSString *)preset withPosition:(AVCaptureDevicePosition)position
 {
     MCVVideoCapture *obj = [[[self class] alloc] init];
@@ -201,6 +200,9 @@ static BOOL __torch_on = NO;
     [session beginConfiguration];
     {
         [session setSessionPreset:preset];
+        if ([session respondsToSelector:@selector(setUsesApplicationAudioSession:)]) {
+            [session setUsesApplicationAudioSession:NO]; // iOS7+ audio interruption work around
+        }
     }
     [session commitConfiguration];
 
