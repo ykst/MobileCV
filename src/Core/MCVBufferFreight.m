@@ -58,9 +58,9 @@
 
     MCVBufferFreight *obj = [[self class] createWithSize:saved.size withInternalFormat:saved.internal_format withSmooth:saved.smooth];
 
-    [obj.plane useWritable:^(void *buf) {
+    TGL_USE_WRITABLE(obj.plane, buf) {
         memcpy(buf, saved.data.bytes, saved.data.length);
-    }];
+    };
 
     return obj;
 }
