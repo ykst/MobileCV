@@ -35,3 +35,8 @@
 @property (nonatomic, readonly) TGLMappedTexture2D *subplane;
 @end
 
+@protocol MCVTriplePlanerBufferProtocol <NSObject>
+@required
+@property (nonatomic, readonly) TGLMappedTexture2D *subplane1;
+@property (nonatomic, readonly) TGLMappedTexture2D *subplane2;
+@end
