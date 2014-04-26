@@ -118,7 +118,7 @@
 }
 
 #define __MAXIMUM_UPRIGHT_SCALE_FACTOR 3.0f
-
+/*
 static void __calc_calibrated_texture_coordinate(GLfloat array2x4[8], double roll, double pitch)
 {
     GLfloat texture_coordinates[8] = {
@@ -161,14 +161,63 @@ static void __calc_calibrated_texture_coordinate(GLfloat array2x4[8], double rol
     }
      
 }
+ */
+/*
+static void __calc_calibrated_texture_coordinate(GLfloat array2x4[8], double roll, double pitch)
+{
+    GLfloat texture_coordinates[8] = {
+        0.0f, 0.0f,
+        1.0f, 0.0f,
 
-- (BOOL)process:(MCVBufferFreight<MCVSubPlanerBufferProtocol, MCVAttitudeFreightProtocol> *)src to:(MCVBufferFreight *)dst
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+    };
+
+    if (1 ||  ABS(sinf(roll)) < 1 / __MAXIMUM_UPRIGHT_SCALE_FACTOR) {
+        //if (ABS(sinf(roll)) < 1 / __MAXIMUM_UPRIGHT_SCALE_FACTOR) {
+        for (int i = 0; i < 8; ++i) {
+            array2x4[i] = texture_coordinates[i];
+        }
+        return;
+    }
+
+
+    GLfloat yscale = MAX(ABS(sinf(roll)), 1 / __MAXIMUM_UPRIGHT_SCALE_FACTOR);
+    GLfloat xdistortion = roll > 0 ? -pitch : pitch;
+    yscale = roll > 0 ? yscale : -yscale;
+    GLfloat xscale = roll > 0 ? 1.0f : -1.0f;
+
+    GLKMatrix4 calibration_mat =
+    GLKMatrix4Multiply(
+                       GLKMatrix4Multiply(
+                                          GLKMatrix4Multiply(
+                                                             GLKMatrix4MakeTranslation(0.5, 0.5, 0),
+                                                             GLKMatrix4MakeZRotation(xdistortion)),
+                                          GLKMatrix4MakeScale(xscale, yscale, 1)),
+                       GLKMatrix4MakeTranslation(-0.5, -0.5, 0));;
+
+    for (int i = 0; i < 4; ++i) {
+
+        GLKVector4 v = GLKMatrix4MultiplyVector4(calibration_mat, GLKVector4Make(texture_coordinates[2*i], texture_coordinates                              [2*i+1], 0, 1));
+
+        array2x4[2*i] = v.x;
+        array2x4[2*i + 1] = v.y;
+    }
+}
+*/
+- (BOOL)process:(MCVBufferFreight<MCVSubPlanerBufferProtocol> *)src to:(MCVBufferFreight *)dst
 {
     BENCHMARK("ccv")
     [TGLDevice runPassiveContextSync:^{
-        GLfloat texture_coord[8];
+        GLfloat texture_coord[8] = {
+            0.0f, 0.0f,
+            1.0f, 0.0f,
 
-        __calc_calibrated_texture_coordinate(texture_coord, src.roll, -src.pitch);
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+        };
+
+        //__calc_calibrated_texture_coordinate(texture_coord, src.roll, -src.pitch);
         
         [_program use];
 

@@ -3,12 +3,12 @@
 
 #import "MCVBufferFreight.h"
 
-@interface MCVCameraBufferFreight : MCVBufferFreight<MCVSubPlanerBufferProtocol, MCVAttitudeFreightProtocol>
+@interface MCVCameraBufferFreight : MCVBufferFreight<MCVSubPlanerBufferProtocol>
 
 + (instancetype)create;
 - (void)refill:(CMSampleBufferRef)sample;
 
-- (void)modifyAttitude:(double)roll :(double)pitch :(double)yaw;
+//- (void)modifyAttitude:(double)roll :(double)pitch :(double)yaw;
 
 @end
 

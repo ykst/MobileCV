@@ -5,9 +5,9 @@
 #import "TGLMappedTexture2D.h"
 
 @interface MCVCameraBufferFreight() {
-    double _roll;
-    double _pitch;
-    double _yaw;
+    //double _roll;
+    //double _pitch;
+    //double _yaw;
     TGLMappedTexture2D *_subplane;
 }
 
@@ -24,9 +24,9 @@
 @implementation MCVCameraBufferFreight
 
 @synthesize subplane = _subplane;
-@synthesize roll = _roll;
-@synthesize pitch = _pitch;
-@synthesize yaw = _yaw;
+//@synthesize roll = _roll;
+//@synthesize pitch = _pitch;
+//@synthesize yaw = _yaw;
 
 - (void)refill:(CMSampleBufferRef)sample
 {
@@ -62,14 +62,14 @@
         default: NSASSERT(!"Unknown frame format"); break;
     }
 }
-
+/*
 - (void)modifyAttitude:(double)roll :(double)pitch :(double)yaw
 {
     _roll = roll;
     _pitch = pitch;
     _yaw = yaw;
 }
-
+*/
 + (MCVCameraBufferFreight *)create
 {
     MCVCameraBufferFreight *obj = [[[self class] alloc] init];

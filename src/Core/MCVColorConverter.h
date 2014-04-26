@@ -14,6 +14,6 @@ typedef NS_ENUM(NSInteger, GLColorConverterType) {
 
 + (instancetype)createWithType:(GLColorConverterType)type;
 
-- (BOOL)process:(MCVBufferFreight *)src to:(MCVBufferFreight *)dst;
+- (BOOL)process:(MCVBufferFreight<MCVSubPlanerBufferProtocol> *)src to:(MCVBufferFreight *)dst;
 @end
 
