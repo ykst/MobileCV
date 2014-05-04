@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name         = "MobileCV"
-  s.version      = "0.0.0"
+  s.version      = "0.1.0"
   s.summary      = "Lightweight Computer Vision library for iOS"
 
   s.description  = <<-DESC
@@ -19,7 +19,7 @@ Pod::Spec.new do |s|
 
   s.author       = { "Yohsuke Yukishita" => "ykstyhsk@gmail.com" }
 
-  s.source       = { :git => "https://github.com/ykst/MobileCV.git", :tag => "0.0.0" }
+  s.source       = { :git => "https://github.com/ykst/MobileCV.git", :tag => "0.1.0" }
 
   s.source_files  = 'src/**/*.{h,c,m}', 'src/**/*.glsl'
   s.exclude_files = 'Makefile'
