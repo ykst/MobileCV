@@ -5,16 +5,7 @@
 #import "TGLDevice.h"
 #import "MCVCameraBufferFreight.h"
 
-@interface MCVVideoCapture() {
-    @protected
-    AVCaptureDevice *_device;
-    AVCaptureSession *_session;
-    AVCaptureDeviceInput *_input;
-    AVCaptureVideoDataOutput *_output;
-    dispatch_queue_t _queue;
-    EAGLContext *_context;
-    BOOL _focus_supported;
-}
+@interface MCVVideoCapture()
 
 @property (nonatomic, readwrite) MTNode *conduit;
 

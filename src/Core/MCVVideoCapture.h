@@ -6,7 +6,16 @@
 #import "MTPipeline.h"
 #import "MCVBufferFreight.h"
 
-@interface MCVVideoCapture : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface MCVVideoCapture : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate> {
+@protected
+    AVCaptureDevice *_device;
+    AVCaptureSession *_session;
+    AVCaptureDeviceInput *_input;
+    AVCaptureVideoDataOutput *_output;
+    dispatch_queue_t _queue;
+    EAGLContext *_context;
+    BOOL _focus_supported;
+}
 
 @property (nonatomic, readonly) MTNode *conduit;
 @property (nonatomic, readonly) CGSize capture_size;
