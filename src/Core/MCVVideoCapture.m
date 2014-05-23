@@ -103,7 +103,7 @@ static inline NSString *__get_preset_from_dim(int width, int height)
     } refs[] = {
         { 1920, 1080, AVCaptureSessionPreset1920x1080 },
         { 1280, 720, AVCaptureSessionPreset1280x720 },
-        { 960, 540, AVCaptureSessionPreset352x288 },
+        { 352, 288, AVCaptureSessionPreset352x288 },
         { 640, 480, AVCaptureSessionPreset640x480 }
     };
 
@@ -182,9 +182,9 @@ static inline NSString *__get_preset_from_dim(int width, int height)
 
     if (__has_capability >= 0) return __has_capability != 0;
 
-    if (!SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7.0")) {
-        __has_capability = 0;
+    __has_capability = 0;
 
+    if (!SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7.0")) {
         return [[self class] has60fpsCapability];
     }
     
@@ -206,8 +206,6 @@ static inline NSString *__get_preset_from_dim(int width, int height)
             }
         }
     }
-
-    __has_capability = 0;
 
     return [[self class] has60fpsCapability];
 }
