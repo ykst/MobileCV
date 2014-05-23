@@ -94,6 +94,124 @@ static BOOL __torch_on = NO;
     return [[self class] createWithConduit:conduit withInputPreset:AVCaptureSessionPreset640x480];
 }
 
+static inline NSString *__get_preset_from_dim(int width, int height)
+{
+    struct {
+        int width;
+        int height;
+        __unsafe_unretained NSString *preset;
+    } refs[] = {
+        { 1920, 1080, AVCaptureSessionPreset1920x1080 },
+        { 1280, 720, AVCaptureSessionPreset1280x720 },
+        { 960, 540, AVCaptureSessionPreset352x288 },
+        { 640, 480, AVCaptureSessionPreset640x480 }
+    };
+
+    NSString *preset = nil;
+
+    for (int i = 0; i < sizeof(refs) / sizeof(refs[0]); ++i) {
+        if (width == refs[i].width && height == refs[i].height) {
+            preset = refs[i].preset;
+            break;
+        }
+    }
+
+    return preset;
+}
+
++ (instancetype)create60FpsWithConduit:(MTNode *)conduit
+{
+    CMVideoDimensions dim = [[self class] _get60FPSDim];
+
+    NSString *preset = nil;
+
+    ASSERT(preset = __get_preset_from_dim(dim.width, dim.height), return nil);
+
+    MCVVideoCapture *obj = [[self class] createWithConduit:conduit withInputPreset:preset withPosition:AVCaptureDevicePositionBack];
+
+    ASSERT(obj, return nil);
+
+    ASSERT([obj _enable60FpsForDimension:dim] == YES, return nil);
+
+    return obj;
+}
+
++ (CMVideoDimensions)_get60FPSDim
+{
+    CMVideoDimensions ret = {};
+
+    ASSERT([[self class] has60fpsCapability] == YES, return ret);
+
+    NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+
+    float max_area = 0.0f;
+
+    for (AVCaptureDevice *device in devices) {
+
+        if ([device position] == AVCaptureDevicePositionBack) {
+
+            for (AVCaptureDeviceFormat *vFormat in [device formats]) {
+                CMFormatDescriptionRef description= vFormat.formatDescription;
+                float maxrate=((AVFrameRateRange*)[vFormat.videoSupportedFrameRateRanges objectAtIndex:0]).maxFrameRate;
+
+                if (maxrate > 59 && CMFormatDescriptionGetMediaSubType(description) == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
+
+                    CMVideoDimensions dim = CMVideoFormatDescriptionGetDimensions(description);
+
+                    const NSString *preset = __get_preset_from_dim(dim.width, dim.height);
+
+                    if (preset != nil) {
+                        const float area = dim.width * dim.height;
+
+                        if (area > max_area) {
+                            max_area = area;
+                            ret = dim;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return ret;
+}
+
++ (BOOL)has60fpsCapability
+{
+    static int __has_capability = -1;
+
+    if (__has_capability >= 0) return __has_capability != 0;
+
+    if (!SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7.0")) {
+        __has_capability = 0;
+
+        return [[self class] has60fpsCapability];
+    }
+    
+    NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    for (AVCaptureDevice *device in devices) {
+
+        if ([device position] == AVCaptureDevicePositionBack) {
+
+            for (AVCaptureDeviceFormat *vFormat in [device formats]) {
+                CMFormatDescriptionRef description= vFormat.formatDescription;
+                float maxrate=((AVFrameRateRange*)[vFormat.videoSupportedFrameRateRanges objectAtIndex:0]).maxFrameRate;
+
+                if (maxrate > 59 && CMFormatDescriptionGetMediaSubType(description) == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
+
+                    __has_capability = 1;
+
+                    return [[self class] has60fpsCapability];
+                }
+            }
+        }
+    }
+
+    __has_capability = 0;
+
+    return [[self class] has60fpsCapability];
+}
+
 - (void)_setupWithPreset:(NSString *)preset withPosition:(AVCaptureDevicePosition)position
 {
     // TODO: select another device?
@@ -163,15 +281,6 @@ static BOOL __torch_on = NO;
          }
      #pragma clang diagnostic pop
      }
-
-    /*
-        AVCaptureConnection *conn = [_output connectionWithMediaType:AVMediaTypeVideo];
-
-        if (conn.supportsVideoMinFrameDuration)
-            conn.videoMinFrameDuration = CMTimeMake(1,60);
-        if (conn.supportsVideoMaxFrameDuration)
-            conn.videoMaxFrameDuration = CMTimeMake(1,60);
-     */
 }
 
 - (void)_setupSession:(NSString *)preset
@@ -218,6 +327,37 @@ static BOOL __torch_on = NO;
 - (void)_setupGLContext
 {
     _context = [TGLDevice createContext];
+}
+
+- (BOOL)_enable60FpsForDimension:(CMVideoDimensions)target_dim
+{
+    ASSERT([_device respondsToSelector:@selector(formats)], return NO);
+
+    for (AVCaptureDeviceFormat *vFormat in [_device formats]) {
+        CMFormatDescriptionRef description = vFormat.formatDescription;
+
+        float maxrate=((AVFrameRateRange*)[vFormat.videoSupportedFrameRateRanges objectAtIndex:0]).maxFrameRate;
+
+        if (maxrate > 59 && CMFormatDescriptionGetMediaSubType(description) == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
+
+            CMVideoDimensions dim = CMVideoFormatDescriptionGetDimensions(description);
+
+            if (target_dim.width == dim.width && target_dim.height == dim.height) {
+                ASSERT([_device lockForConfiguration:NULL] == YES, return NO);
+
+                _device.activeFormat = vFormat;
+                [_device setActiveVideoMinFrameDuration:CMTimeMake(10,600)];
+                [_device setActiveVideoMaxFrameDuration:CMTimeMake(10,600)];
+                [_device unlockForConfiguration];
+
+                INFO("enabled 60fps with %dx%d", dim.width, dim.height);
+
+                return YES;
+            }
+        }
+    }
+    
+    return NO;
 }
 
 - (void)startCapture

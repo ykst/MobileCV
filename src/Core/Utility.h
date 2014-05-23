@@ -90,6 +90,10 @@ action;\
 
 #define NSPOINTER(ptr) ([NSValue valueWithPointer:(ptr)])
 
+#define IS_IPHONE ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v) ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+#define IS_IOS6 (!SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7.0"))
+
 static inline bool ____benchmark_check_time(char const * const comment, uint64_t const start, uint64_t const tick)
 {
     if (!tick) return true;

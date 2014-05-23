@@ -25,10 +25,13 @@
 + (instancetype)createWithConduit:(MTNode *)conduit;
 + (instancetype)createWithConduit:(MTNode *)conduit withInputPreset:(NSString *)preset; // AVCaptureSessionPreset*
 + (instancetype)createWithConduit:(MTNode *)conduit withInputPreset:(NSString *)preset withPosition:(AVCaptureDevicePosition)position; // AVCaptureSessionPreset*
++ (instancetype)create60FpsWithConduit:(MTNode *)conduit; // rear camera only
+
 + (NSArray *)countSupportedPositions;
 + (BOOL)hasTorch;
 + (BOOL)torchIsOn;
 + (void)turnTorchOn:(BOOL)on;
++ (BOOL)has60fpsCapability;
 
 - (void)startCapture;
 - (void)stopCapture;
