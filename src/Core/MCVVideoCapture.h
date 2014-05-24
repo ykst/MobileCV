@@ -40,4 +40,5 @@
 - (void)setFocusPoint:(CGPoint)focus_point;
 - (void)setAutoFocus;
 - (void)appendMetaInfo:(MCVBufferFreight *)freight; // override this to automatically append extra information
+- (void)changeCameraFPS:(int)fps;
 @end

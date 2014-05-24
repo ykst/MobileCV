@@ -189,6 +189,7 @@ static inline NSString *__get_preset_from_dim(int width, int height)
     }
     
     NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+
     for (AVCaptureDevice *device in devices) {
 
         if ([device position] == AVCaptureDevicePositionBack) {
@@ -331,10 +332,10 @@ static inline NSString *__get_preset_from_dim(int width, int height)
 {
     ASSERT([_device respondsToSelector:@selector(formats)], return NO);
 
-    for (AVCaptureDeviceFormat *vFormat in [_device formats]) {
-        CMFormatDescriptionRef description = vFormat.formatDescription;
+    for (AVCaptureDeviceFormat *format in [_device formats]) {
+        CMFormatDescriptionRef description = format.formatDescription;
 
-        float maxrate=((AVFrameRateRange*)[vFormat.videoSupportedFrameRateRanges objectAtIndex:0]).maxFrameRate;
+        float maxrate = ((AVFrameRateRange*)[format.videoSupportedFrameRateRanges objectAtIndex:0]).maxFrameRate;
 
         if (maxrate > 59 && CMFormatDescriptionGetMediaSubType(description) == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
 
@@ -343,7 +344,7 @@ static inline NSString *__get_preset_from_dim(int width, int height)
             if (target_dim.width == dim.width && target_dim.height == dim.height) {
                 ASSERT([_device lockForConfiguration:NULL] == YES, return NO);
 
-                _device.activeFormat = vFormat;
+                _device.activeFormat = format;
                 [_device setActiveVideoMinFrameDuration:CMTimeMake(10,600)];
                 [_device setActiveVideoMaxFrameDuration:CMTimeMake(10,600)];
                 [_device unlockForConfiguration];
@@ -356,6 +357,43 @@ static inline NSString *__get_preset_from_dim(int width, int height)
     }
     
     return NO;
+}
+
+- (void)changeCameraFPS:(int)fps
+{
+    int set_rate = 30;
+
+    if ([_device respondsToSelector:@selector(activeFormat)]) {
+        AVCaptureDeviceFormat *format = _device.activeFormat;
+        AVFrameRateRange *framrate_range = [format.videoSupportedFrameRateRanges objectAtIndex:0];
+
+        set_rate = MIN(framrate_range.maxFrameRate, MAX(framrate_range.minFrameRate, fps));
+    } else {
+        set_rate = MIN(60, MAX(1, fps));
+    }
+
+    DBG(@"changing camera FPS to %d", set_rate);
+
+    if ([_device respondsToSelector:@selector(setActiveVideoMaxFrameDuration:)] &&
+        [_device respondsToSelector:@selector(setActiveVideoMinFrameDuration:)]) {
+        ASSERT([_device lockForConfiguration:NULL] == YES, return);
+        [_device setActiveVideoMinFrameDuration:CMTimeMake(10,set_rate * 10)];
+        [_device setActiveVideoMaxFrameDuration:CMTimeMake(10,set_rate * 10)];
+        [_device unlockForConfiguration];
+    } else {
+        for (AVCaptureConnection *connection in _output.connections) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+            if ([connection respondsToSelector:@selector(setVideoMinFrameDuration:)]) {
+                connection.videoMinFrameDuration = CMTimeMake(1, set_rate);
+            }
+
+            if ([connection respondsToSelector:@selector(setVideoMaxFrameDuration:)]) {
+                connection.videoMaxFrameDuration = CMTimeMake(1, set_rate);
+            }
+#pragma clang diagnostic pop
+        }
+    }
 }
 
 - (void)startCapture
