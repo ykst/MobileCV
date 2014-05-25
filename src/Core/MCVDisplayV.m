@@ -39,11 +39,13 @@
 {
     self.opaque = YES;
     self.hidden = NO;
+
     if ([self respondsToSelector:@selector(setContentScaleFactor:)]) {
         self.contentScaleFactor = [[UIScreen mainScreen] scale];
     }
 
     CAEAGLLayer *eagl_layer = (CAEAGLLayer *)self.layer;
+
     eagl_layer.opaque = YES;
     eagl_layer.drawableProperties = @{
                                       kEAGLDrawablePropertyRetainedBacking:@(NO),

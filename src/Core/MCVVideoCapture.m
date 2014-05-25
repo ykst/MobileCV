@@ -25,24 +25,27 @@
     return result;
 }
 
-static int __torch_support = -1;
 static BOOL __torch_on = NO;
 
 + (BOOL)hasTorch
 {
-    if (__torch_support < 0) {
+    static BOOL __torch_support;
+    static dispatch_once_t __once_token;
+
+    dispatch_once(&__once_token, ^{
         AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+
         if ([device respondsToSelector:@selector(hasTorch)] &&
             [device respondsToSelector:@selector(hasFlash)] &&
             [device hasTorch] && [device hasFlash]) {
 
-            __torch_support = 1;
+            __torch_support = YES;
         } else {
-            __torch_support = 0;
+            __torch_support = NO;
         }
-    }
+    });
 
-    return __torch_support == 1;
+    return __torch_support;
 }
 
 + (BOOL)torchIsOn
@@ -344,6 +347,7 @@ static inline NSString *__get_preset_from_dim(int width, int height)
             if (target_dim.width == dim.width && target_dim.height == dim.height) {
                 ASSERT([_device lockForConfiguration:NULL] == YES, return NO);
 
+                // Only iOS7 devices can capture 60fps video. So this configuration should be safe.
                 _device.activeFormat = format;
                 [_device setActiveVideoMinFrameDuration:CMTimeMake(10,600)];
                 [_device setActiveVideoMaxFrameDuration:CMTimeMake(10,600)];
@@ -437,18 +441,7 @@ static inline NSString *__get_preset_from_dim(int width, int height)
 
 - (void)appendMetaInfo:(MCVBufferFreight *)freight
 {
-    // override this
-    /*
-    if (_core_motion) {
-        CMAttitude *attitude  = _core_motion.deviceMotion.attitude;
-        CMAcceleration user_accel  = _core_motion.deviceMotion.userAcceleration;
-        [freight modifyAttitude:attitude.roll :attitude.pitch :attitude.yaw];
-
-        freight.user_accel = GLKVector3Make(user_accel.x, user_accel.y, user_accel.z);
-    } else {
-        [freight modifyAttitude:0 :0 :0];
-    }
-     */
+    // Override me
 }
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
@@ -483,16 +476,6 @@ static inline NSString *__get_preset_from_dim(int width, int height)
     [self appendMetaInfo:freight];
 
     [conduit outPut:freight];
-}
-
-- (void)captureOutput:(AVCaptureOutput *)captureOutput didDropSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
-{
-    //ICHECK;
-}
-
-- (void)dealloc
-{
-    //ICHECK;
 }
 
 @end
