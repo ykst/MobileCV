@@ -25,24 +25,27 @@
     return result;
 }
 
-static int __torch_support = -1;
 static BOOL __torch_on = NO;
 
 + (BOOL)hasTorch
 {
-    if (__torch_support < 0) {
+    static BOOL __torch_support;
+    static dispatch_once_t __once_token;
+
+    dispatch_once(&__once_token, ^{
         AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+
         if ([device respondsToSelector:@selector(hasTorch)] &&
             [device respondsToSelector:@selector(hasFlash)] &&
             [device hasTorch] && [device hasFlash]) {
 
-            __torch_support = 1;
+            __torch_support = YES;
         } else {
-            __torch_support = 0;
+            __torch_support = NO;
         }
-    }
+    });
 
-    return __torch_support == 1;
+    return __torch_support;
 }
 
 + (BOOL)torchIsOn
@@ -92,6 +95,123 @@ static BOOL __torch_on = NO;
 + (instancetype)createWithConduit:(MTNode *)conduit
 {
     return [[self class] createWithConduit:conduit withInputPreset:AVCaptureSessionPreset640x480];
+}
+
+static inline NSString *__get_preset_from_dim(int width, int height)
+{
+    struct {
+        int width;
+        int height;
+        __unsafe_unretained NSString *preset;
+    } refs[] = {
+        { 1920, 1080, AVCaptureSessionPreset1920x1080 },
+        { 1280, 720, AVCaptureSessionPreset1280x720 },
+        { 352, 288, AVCaptureSessionPreset352x288 },
+        { 640, 480, AVCaptureSessionPreset640x480 }
+    };
+
+    NSString *preset = nil;
+
+    for (int i = 0; i < sizeof(refs) / sizeof(refs[0]); ++i) {
+        if (width == refs[i].width && height == refs[i].height) {
+            preset = refs[i].preset;
+            break;
+        }
+    }
+
+    return preset;
+}
+
++ (instancetype)create60FpsWithConduit:(MTNode *)conduit
+{
+    CMVideoDimensions dim = [[self class] _get60FPSDim];
+
+    NSString *preset = nil;
+
+    ASSERT(preset = __get_preset_from_dim(dim.width, dim.height), return nil);
+
+    MCVVideoCapture *obj = [[self class] createWithConduit:conduit withInputPreset:preset withPosition:AVCaptureDevicePositionBack];
+
+    ASSERT(obj, return nil);
+
+    ASSERT([obj _enable60FpsForDimension:dim] == YES, return nil);
+
+    return obj;
+}
+
++ (CMVideoDimensions)_get60FPSDim
+{
+    CMVideoDimensions ret = {};
+
+    ASSERT([[self class] has60fpsCapability] == YES, return ret);
+
+    NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+
+    float max_area = 0.0f;
+
+    for (AVCaptureDevice *device in devices) {
+
+        if ([device position] == AVCaptureDevicePositionBack) {
+
+            for (AVCaptureDeviceFormat *vFormat in [device formats]) {
+                CMFormatDescriptionRef description= vFormat.formatDescription;
+                float maxrate=((AVFrameRateRange*)[vFormat.videoSupportedFrameRateRanges objectAtIndex:0]).maxFrameRate;
+
+                if (maxrate > 59 && CMFormatDescriptionGetMediaSubType(description) == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
+
+                    CMVideoDimensions dim = CMVideoFormatDescriptionGetDimensions(description);
+
+                    const NSString *preset = __get_preset_from_dim(dim.width, dim.height);
+
+                    if (preset != nil) {
+                        const float area = dim.width * dim.height;
+
+                        if (area > max_area) {
+                            max_area = area;
+                            ret = dim;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return ret;
+}
+
++ (BOOL)has60fpsCapability
+{
+    static int __has_capability = -1;
+
+    if (__has_capability >= 0) return __has_capability != 0;
+
+    __has_capability = 0;
+
+    if (!SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7.0")) {
+        return [[self class] has60fpsCapability];
+    }
+    
+    NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+
+    for (AVCaptureDevice *device in devices) {
+
+        if ([device position] == AVCaptureDevicePositionBack) {
+
+            for (AVCaptureDeviceFormat *vFormat in [device formats]) {
+                CMFormatDescriptionRef description= vFormat.formatDescription;
+                float maxrate=((AVFrameRateRange*)[vFormat.videoSupportedFrameRateRanges objectAtIndex:0]).maxFrameRate;
+
+                if (maxrate > 59 && CMFormatDescriptionGetMediaSubType(description) == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
+
+                    __has_capability = 1;
+
+                    return [[self class] has60fpsCapability];
+                }
+            }
+        }
+    }
+
+    return [[self class] has60fpsCapability];
 }
 
 - (void)_setupWithPreset:(NSString *)preset withPosition:(AVCaptureDevicePosition)position
@@ -163,15 +283,6 @@ static BOOL __torch_on = NO;
          }
      #pragma clang diagnostic pop
      }
-
-    /*
-        AVCaptureConnection *conn = [_output connectionWithMediaType:AVMediaTypeVideo];
-
-        if (conn.supportsVideoMinFrameDuration)
-            conn.videoMinFrameDuration = CMTimeMake(1,60);
-        if (conn.supportsVideoMaxFrameDuration)
-            conn.videoMaxFrameDuration = CMTimeMake(1,60);
-     */
 }
 
 - (void)_setupSession:(NSString *)preset
@@ -220,6 +331,75 @@ static BOOL __torch_on = NO;
     _context = [TGLDevice createContext];
 }
 
+- (BOOL)_enable60FpsForDimension:(CMVideoDimensions)target_dim
+{
+    ASSERT([_device respondsToSelector:@selector(formats)], return NO);
+
+    for (AVCaptureDeviceFormat *format in [_device formats]) {
+        CMFormatDescriptionRef description = format.formatDescription;
+
+        float maxrate = ((AVFrameRateRange*)[format.videoSupportedFrameRateRanges objectAtIndex:0]).maxFrameRate;
+
+        if (maxrate > 59 && CMFormatDescriptionGetMediaSubType(description) == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
+
+            CMVideoDimensions dim = CMVideoFormatDescriptionGetDimensions(description);
+
+            if (target_dim.width == dim.width && target_dim.height == dim.height) {
+                ASSERT([_device lockForConfiguration:NULL] == YES, return NO);
+
+                // Only iOS7 devices can capture 60fps video. So this configuration should be safe.
+                _device.activeFormat = format;
+                [_device setActiveVideoMinFrameDuration:CMTimeMake(10,600)];
+                [_device setActiveVideoMaxFrameDuration:CMTimeMake(10,600)];
+                [_device unlockForConfiguration];
+
+                INFO("enabled 60fps with %dx%d", dim.width, dim.height);
+
+                return YES;
+            }
+        }
+    }
+    
+    return NO;
+}
+
+- (void)changeCameraFPS:(int)fps
+{
+    int set_rate = 30;
+
+    if ([_device respondsToSelector:@selector(activeFormat)]) {
+        AVCaptureDeviceFormat *format = _device.activeFormat;
+        AVFrameRateRange *framrate_range = [format.videoSupportedFrameRateRanges objectAtIndex:0];
+
+        set_rate = MIN(framrate_range.maxFrameRate, MAX(framrate_range.minFrameRate, fps));
+    } else {
+        set_rate = MIN(60, MAX(1, fps));
+    }
+
+    DBG(@"changing camera FPS to %d", set_rate);
+
+    if ([_device respondsToSelector:@selector(setActiveVideoMaxFrameDuration:)] &&
+        [_device respondsToSelector:@selector(setActiveVideoMinFrameDuration:)]) {
+        ASSERT([_device lockForConfiguration:NULL] == YES, return);
+        [_device setActiveVideoMinFrameDuration:CMTimeMake(10,set_rate * 10)];
+        [_device setActiveVideoMaxFrameDuration:CMTimeMake(10,set_rate * 10)];
+        [_device unlockForConfiguration];
+    } else {
+        for (AVCaptureConnection *connection in _output.connections) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+            if ([connection respondsToSelector:@selector(setVideoMinFrameDuration:)]) {
+                connection.videoMinFrameDuration = CMTimeMake(1, set_rate);
+            }
+
+            if ([connection respondsToSelector:@selector(setVideoMaxFrameDuration:)]) {
+                connection.videoMaxFrameDuration = CMTimeMake(1, set_rate);
+            }
+#pragma clang diagnostic pop
+        }
+    }
+}
+
 - (void)startCapture
 {
     [_session startRunning];
@@ -261,18 +441,7 @@ static BOOL __torch_on = NO;
 
 - (void)appendMetaInfo:(MCVBufferFreight *)freight
 {
-    // override this
-    /*
-    if (_core_motion) {
-        CMAttitude *attitude  = _core_motion.deviceMotion.attitude;
-        CMAcceleration user_accel  = _core_motion.deviceMotion.userAcceleration;
-        [freight modifyAttitude:attitude.roll :attitude.pitch :attitude.yaw];
-
-        freight.user_accel = GLKVector3Make(user_accel.x, user_accel.y, user_accel.z);
-    } else {
-        [freight modifyAttitude:0 :0 :0];
-    }
-     */
+    // Override me
 }
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
@@ -307,16 +476,6 @@ static BOOL __torch_on = NO;
     [self appendMetaInfo:freight];
 
     [conduit outPut:freight];
-}
-
-- (void)captureOutput:(AVCaptureOutput *)captureOutput didDropSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
-{
-    //ICHECK;
-}
-
-- (void)dealloc
-{
-    //ICHECK;
 }
 
 @end
