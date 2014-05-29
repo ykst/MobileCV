@@ -38,6 +38,7 @@
 - (BOOL)isCapturing;
 - (BOOL)focusPointSupported;
 - (void)setFocusPoint:(CGPoint)focus_point;
+- (void)lockFocus;
 - (void)setAutoFocus;
 - (void)appendMetaInfo:(MCVBufferFreight *)freight; // override this to automatically append extra information
 - (void)changeCameraFPS:(int)fps;

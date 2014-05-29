@@ -430,6 +430,15 @@ static inline NSString *__get_preset_from_dim(int width, int height)
     }
 }
 
+- (void)lockFocus
+{
+    if (_focus_supported) {
+        [_device lockForConfiguration:nil];
+        _device.focusMode = AVCaptureFocusModeLocked;
+        [_device unlockForConfiguration];
+    }
+}
+
 - (void)setAutoFocus
 {
     if (_focus_supported) {
