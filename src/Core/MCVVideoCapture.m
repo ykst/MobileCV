@@ -367,7 +367,7 @@ static inline NSString *__get_preset_from_dim(int width, int height)
 {
     int set_rate = 30;
 
-    if ([_device respondsToSelector:@selector(activeFormat)]) {
+    if (!IS_IOS6 && [_device respondsToSelector:@selector(activeFormat)]) {
         AVCaptureDeviceFormat *format = _device.activeFormat;
         AVFrameRateRange *framrate_range = [format.videoSupportedFrameRateRanges objectAtIndex:0];
 
